@@ -59,6 +59,17 @@
 			value_type* base() {
 				return m_ptr;
 			}
+
+			vectorIterator	operator - (difference_type n) {
+				vectorIterator	dst = *this;
+				dst -= n;
+				return dst;
+			}
+
+			difference_type	operator - (const vectorIterator &other) {
+				return this->m_ptr - other.m_ptr;
+			}
+
 			// typename vectorIterator<T>::difference_type
 			// operator-(vectorIterator<T> temp1, vectorIterator<T> temp2) {
 			// 	return (temp1.base() - temp2.base());
@@ -279,63 +290,29 @@ class ReversevectorIterator {
 			}
 
 			iterator insert (iterator position, const value_type& val) {
-				size_type size = _size + 1;
-				if (size > _capacity) {
-					_capacity = _size * 2;
-					value_type* temp = _allocator.allocate(_capacity);
-					size_type i = 0;
-					for (iterator it = begin(); it != end(); it++)
-					{
-						if (it == position) {
-							temp[i] = val;
-							i++;
-						}
-						temp[i] = *it;
-						i++;
-					}
-					_destroy_vector();
-					_m_ptr = temp;
-				} else {
-					iterator it = position;
-					value_type temp;
-					while ( it != end())
-					{
-						temp = *(it);
-						it++;
-						*it = temp;
-					}
-					*position = val;
-				}
-				_size = size;
-				return (position);
+				difference_type	diff = std::distance(this->begin(), position);
+
+				insert(position, 1, val);
+				return this->begin() + diff;
 			}
 
 			void insert (iterator position, size_type n, const value_type& val) {
 				size_type size = _size + n;
-				value_type* temp;
-				if (size < _size * 2 && _size * 2 > _capacity) {
-					temp = _allocator.allocate(_size * 2);
-					_capacity = _size * 2;
-				} else if (size > _capacity) {
-					temp = _allocator.allocate(size);
-					_capacity = size;
-				} else {
-					temp = _allocator.allocate(_capacity);
+				difference_type diff = std::distance(begin(), position);
+				if (size > _capacity) {
+					_smart_change_capacity(size);
 				}
-				size_type i = 0;
-				for (iterator it = begin(); it != end(); it++)
-				{
-					if (it == position) {
-						while (i < n) {
-							_allocator.construct(&temp[i], val);
-							i++;
-						}
-					}
-					_allocator.construct(&temp[i], *it);
-					i++;
+				value_type *begin = _m_ptr + _size - 1;
+				value_type *end = _m_ptr + diff - 1;
+				value_type *dst = _m_ptr + size;
+				while (begin >= end) {
+					_allocator.construct(dst, *begin);
+					--dst;
+					--begin;
 				}
-				_destroy_vector();
-				_m_ptr = temp;
+				for (value_type i = diff; i < diff + n; i++) {
+					_allocator.construct(&_m_ptr[diff], val);
+				}
 				_size = size;
 			}
 
