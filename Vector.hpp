@@ -346,6 +346,34 @@ class ReversevectorIterator {
 				return (_m_ptr + diff);
 			}
 
+			void swap (vector& x) {
+				size_type size = x._size;
+				size_type capacity = x._capacity;
+				value_type *m_ptr = x._m_ptr;
+				allocator_type allocator = x._allocator;
+				x._size = this->_size;
+				x._capacity = this->_capacity;
+				x._m_ptr = this->_m_ptr;
+				x._allocator = this->_allocator;
+				this->_size = size;
+				this->_capacity = capacity;
+				this->_m_ptr = m_ptr;
+				this->_allocator = allocator;
+			}
+
+			void clear() {
+				if (_size > 0) {
+						for (size_t i = 0; i < _size; i++) {
+							_allocator.destroy(&_m_ptr[i]);
+						}
+						_size = 0;
+				}
+			}
+
+			allocator_type get_allocator() const {
+				return (_allocator);
+			}
+
 		private:
 			void _smart_change_capacity(size_type new_capacity) {
 				if (new_capacity > 2 * _size) {
