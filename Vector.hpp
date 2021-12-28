@@ -60,10 +60,20 @@
 				return m_ptr;
 			}
 
+			vectorIterator	operator + (difference_type n) {
+				vectorIterator	dst = *this;
+				dst.m_ptr += n;
+				return dst;
+			}
+
 			vectorIterator	operator - (difference_type n) {
 				vectorIterator	dst = *this;
 				dst -= n;
 				return dst;
+			}
+
+			difference_type	operator + (const vectorIterator &other) {
+				return this->m_ptr + other.m_ptr;
 			}
 
 			difference_type	operator - (const vectorIterator &other) {
@@ -277,10 +287,11 @@ class ReversevectorIterator {
 			}
 
 			void push_back (const value_type& val) {
-				++_size;
-				if (_size > _capacity) {
-					reserve(_size);
+				difference_type size = _size + 1;
+				if (size > _capacity) {
+					_smart_change_capacity(size);
 				}
+				_size = size;
 				_allocator.construct(&_m_ptr[_size - 1], val);
 			}
 
@@ -302,18 +313,37 @@ class ReversevectorIterator {
 				if (size > _capacity) {
 					_smart_change_capacity(size);
 				}
+				value_type *dst = _m_ptr + size - 1;
 				value_type *begin = _m_ptr + _size - 1;
-				value_type *end = _m_ptr + diff - 1;
-				value_type *dst = _m_ptr + size;
+				value_type *end = _m_ptr + diff;
 				while (begin >= end) {
 					_allocator.construct(dst, *begin);
 					--dst;
 					--begin;
 				}
 				for (value_type i = diff; i < diff + n; i++) {
-					_allocator.construct(&_m_ptr[diff], val);
+					_allocator.destroy(&_m_ptr[i]);
+					_allocator.construct(&_m_ptr[i], val);
 				}
 				_size = size;
+			}
+
+			iterator erase (iterator position) {
+				return (erase(position, position + 1));
+			}
+
+			iterator erase (iterator first, iterator last) {
+				difference_type diff = std::distance(begin(), first);
+				difference_type n = std::distance(first, last);
+
+				for (difference_type i = diff; i < _size; i++)
+				{
+					_allocator.destroy(&_m_ptr[i]);
+					_allocator.construct(&_m_ptr[i], _m_ptr[i + n]);
+				}
+				_size -= n;
+
+				return (_m_ptr + diff);
 			}
 
 		private:
