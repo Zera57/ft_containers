@@ -1,5 +1,5 @@
-#ifndef VECTOR_HPP
-# define VECTOR_HPP
+#ifndef __xXx_VECTOR_HPP_xXx__
+# define __xXx_VECTOR_HPP_xXx__
 
 # include <iostream>
 # include <iterator>
@@ -7,13 +7,20 @@
 # include <cstddef>
 # include <stdexcept>
 # include <typeinfo>
+# include "IteratorTraits.hpp"
 # include "Utils.hpp"
+
+namespace ft {
 
  template <typename T>
 	class vectorIterator : public std::iterator<std::random_access_iterator_tag, T> {
 		public:
-			typedef T								value_type;
-			typedef ptrdiff_t						difference_type;
+			typedef	ft::iterator_traits<T>						iterator_traits;
+			typedef typename iterator_traits::difference_type	difference_type;
+			typedef typename iterator_traits::value_type		value_type;
+			typedef typename iterator_traits::pointer			pointer;
+			typedef typename iterator_traits::reference			reference;
+			typedef typename iterator_traits::iterator_category	iterator_category;
 
 			vectorIterator() {}
 
@@ -21,7 +28,7 @@
 				: m_ptr(ptr) {}
 			
 			vectorIterator& operator++() {
-				m_ptr++;
+				++m_ptr;
 				return *this;
 			}
 			vectorIterator& operator++(int) {
@@ -30,7 +37,7 @@
 				return *temp;
 			}
 			vectorIterator& operator--() {
-				m_ptr--;
+				--m_ptr;
 				return *this;
 			}
 			vectorIterator& operator--(int) {
@@ -38,17 +45,14 @@
 				--(*this);
 				return temp;
 			}
-			value_type& operator[](int index) {
+			reference	operator[](int index) {
 				return *(m_ptr + index);
 			}
-			value_type* operator->() {
+			pointer		operator->() {
 				return m_ptr;
 			}
-			value_type& operator*() {
+			reference	operator*() {
 				return *m_ptr;
-			}
-			void operator*=(value_type a) {
-				*m_ptr = a;
 			}
 			bool operator == (const vectorIterator& o) const {
 				return m_ptr == o.m_ptr;
@@ -56,7 +60,7 @@
 			bool operator != (const vectorIterator& o) const {
 				return !(m_ptr == o.m_ptr);
 			}
-			value_type* base() {
+			pointer		base() {
 				return m_ptr;
 			}
 
@@ -66,10 +70,20 @@
 				return dst;
 			}
 
+			vectorIterator	&operator += (difference_type n) {
+				this->m_ptr += n;
+				return *this;
+			}
+
 			vectorIterator	operator - (difference_type n) {
 				vectorIterator	dst = *this;
-				dst -= n;
+				dst.m_ptr -= n;
 				return dst;
+			}
+
+			vectorIterator	&operator -= (difference_type n) {
+				this->m_ptr -= n;
+				return *this;
 			}
 
 			difference_type	operator + (const vectorIterator &other) {
@@ -86,7 +100,7 @@
 			// }
 
 		private:
-			value_type* m_ptr;
+			pointer		m_ptr;
 	};
 
 class ReversevectorIterator {
@@ -97,18 +111,18 @@ class ReversevectorIterator {
 	class vector {
 
 		public:
-			typedef T								value_type;
-			typedef Alloc							allocator_type;
-			typedef value_type&						reference;
-			typedef const value_type&				const_reference;
-			typedef value_type*						pointer;
-			typedef const value_type*				const_pointer;
-			typedef vectorIterator<T> 				iterator;
-			typedef const vectorIterator<vector>	const_iterator;
-			typedef ReversevectorIterator			reverse_iterator;
-			typedef const ReversevectorIterator		const_reverse_iterator;
-			typedef ptrdiff_t						difference_type;
-			typedef size_t							size_type;
+			typedef Alloc										allocator_type;
+			typedef typename allocator_type::value_type			value_type;
+			typedef typename allocator_type::reference			reference;
+			typedef typename allocator_type::const_reference	const_reference;
+			typedef typename allocator_type::pointer			pointer;
+			typedef typename allocator_type::const_pointer		const_pointer;
+			typedef vectorIterator<pointer> 					iterator;
+			typedef vectorIterator<const_pointer>				const_iterator;
+			typedef ReversevectorIterator				reverse_iterator;
+			typedef ReversevectorIterator		const_reverse_iterator;
+			typedef ptrdiff_t									difference_type;
+			typedef size_t										size_type;
 
 		private:
 			T*				_m_ptr;
@@ -123,38 +137,29 @@ class ReversevectorIterator {
 			explicit vector (size_type n, const value_type& val = value_type(),
 				 const allocator_type& alloc = allocator_type()) :
 				 _m_ptr(NULL), _capacity(0), _size(0), _allocator(alloc)  {
-				_m_ptr = _allocator.allocate(n);
-				for (size_t i = 0; i < n; i++)
-					_allocator.construct(&_m_ptr[i], val);
-				_capacity = n;
-				_size = n;
+					__hidden_constructor(n, val, true_type());
 			}
 
-			template <class InputIterator>
+			template <typename InputIterator>
 			vector (InputIterator first, InputIterator last,
-					const allocator_type& alloc = allocator_type(),
-					typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = u_nullptr) :
+					const allocator_type& alloc = allocator_type()) :
 					_m_ptr(NULL), _capacity(0), _size(0), _allocator(alloc) {
-				_m_ptr = _allocator.allocate(std::distance(first, last));
-				size_t i = 0;
-				while (first != last) {
-					_allocator.construct(&_m_ptr[i++], *first);
-					++first;
-				}
+				typedef typename ft::is_integral<InputIterator>::type		itegral;
+
+				__hidden_constructor(first, last, itegral());
 			}
 
-			vector (const vector& x) :
-			 _m_ptr(NULL), _capacity(x._capacity), _size(x.size), _allocator(x._allocator) {
-				_m_ptr = _allocator.allocate(x._capacity);
-				size_t i = 0;
-				for (iterator elem = x.begin(); elem != x.end(); elem++) {
-					_allocator.construct(_m_ptr[i], *elem);
-					++i;
-				}
+
+
+			vector (const vector& other) :
+			 _m_ptr(NULL), _capacity(other.capacity()), _size(other.size()), _allocator(other.get_allocator()) {
+				_m_ptr = _allocator.allocate(_capacity);
+				for (size_type i = 0; i < _size; i++)
+					_allocator.construct(&_m_ptr[i], other[i]);
 			}
 
 			~vector () {
-				_destroy_vector();
+				__destroy_vector();
 			}
 
 			vector&				operator= (const vector& x) {
@@ -168,17 +173,25 @@ class ReversevectorIterator {
 			iterator			begin() {
 				return (iterator(_m_ptr));
 			}
+			
+			const_iterator		begin() const {
+				return (const_iterator(_m_ptr));
+			}
 
 			iterator			end() {
 				return (iterator(_m_ptr + _size));
 			}
+			
+			const_iterator		end() const {
+				return (const_iterator(_m_ptr + _size));
+			}
 
 			reverse_iterator	rbegin() {
-				return (reverse_iterator(_m_ptr + _size - 1));
+				return (reverse_iterator(end()));
 			}
 
 			reverse_iterator	rend() {
-				return (reverse_iterator(_m_ptr - 1));
+				return (reverse_iterator(begin()));
 			}
 
 			size_type			size(void) const {
@@ -189,7 +202,7 @@ class ReversevectorIterator {
 				return (_capacity);
 			}
 
-			size_type			max_size() {
+			size_type			max_size() const {
 				return (allocator_type().max_size());
 			}
 
@@ -205,7 +218,7 @@ class ReversevectorIterator {
 					}
 					_size = n;
 				} else if (_size < n) {
-					_smart_change_capacity(n);
+					__smart_change_capacity(n);
 					for (size_t i = _size; i < n; i++)
 					{
 						_allocator.construct(&_m_ptr[i], val);
@@ -216,7 +229,7 @@ class ReversevectorIterator {
 
 			void reserve (size_type n) {
 				if (_capacity < n) {
-					_raw_change_capacity(n);
+					__raw_change_capacity(n);
 				}
 			}
 
@@ -229,33 +242,33 @@ class ReversevectorIterator {
 			}
 
 			reference at (size_type n) {
-				return (reference(_m_ptr[n]));
+				return (_m_ptr[n]);
 			}
 
 			const_reference at (size_type n) const {
-				return (const_reference(_m_ptr[n]));
+				return (_m_ptr[n]);
 			}
 
-			reference front (size_type n) {
-				return (reference(*_m_ptr));
+			reference front () {
+				return (*begin());
 			}
 
-			const_reference front (size_type n) const {
-				return (const_reference(*_m_ptr));
+			const_reference front () const {
+				return (*begin());
 			}
 
-			reference back (size_type n) {
-				return (reference(*(_m_ptr + _size)));
+			reference back () {
+				return (*end());
 			}
 
-			const_reference back (size_type n) const {
-				return (const_reference(*(_m_ptr + _size)));
+			const_reference back () const {
+				return (*end());
 			}
 
 			template <class InputIterator>
 				void assign (InputIterator first, InputIterator last,
-				typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = u_nullptr) {
-					_destroy_vector();
+				typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = NULL) {
+					__destroy_vector();
 					size_type	new_capacity = std::distance(first, last);
 					if (new_capacity > _capacity) {
 						_m_ptr = _allocator.allocate(new_capacity);
@@ -264,7 +277,7 @@ class ReversevectorIterator {
 						_m_ptr = _allocator.allocate(_capacity);
 					}
 					for (size_t i = 0; i < new_capacity; i++) {
-						_allocator.construct(&_m_ptr[i], &(*first));
+						_allocator.construct(&_m_ptr[i], *first);
 						first++;
 						if (first == last)
 							break;
@@ -273,7 +286,7 @@ class ReversevectorIterator {
 				}
 
 			void assign (size_type n, const value_type& val) {
-				_destroy_vector();
+				__destroy_vector();
 				if (n > _capacity) {
 					_m_ptr = _allocator.allocate(n);
 					_capacity = n;
@@ -288,8 +301,8 @@ class ReversevectorIterator {
 
 			void push_back (const value_type& val) {
 				difference_type size = _size + 1;
-				if (size > _capacity) {
-					_smart_change_capacity(size);
+				if (size > static_cast<difference_type>(_capacity)) {
+					__smart_change_capacity(size);
 				}
 				_size = size;
 				_allocator.construct(&_m_ptr[_size - 1], val);
@@ -309,9 +322,9 @@ class ReversevectorIterator {
 
 			void insert (iterator position, size_type n, const value_type& val) {
 				size_type size = _size + n;
-				difference_type diff = std::distance(begin(), position);
+				size_type diff = std::distance(begin(), position);
 				if (size > _capacity) {
-					_smart_change_capacity(size);
+					__smart_change_capacity(size);
 				}
 				value_type *dst = _m_ptr + size - 1;
 				value_type *begin = _m_ptr + _size - 1;
@@ -321,11 +334,20 @@ class ReversevectorIterator {
 					--dst;
 					--begin;
 				}
-				for (value_type i = diff; i < diff + n; i++) {
+				for (size_type i = diff; i < diff + n; i++) {
 					_allocator.destroy(&_m_ptr[i]);
 					_allocator.construct(&_m_ptr[i], val);
 				}
 				_size = size;
+			}
+
+			template< class InputIterator,
+					  typename std::enable_if<!is_integral<InputIterator>::value, InputIterator>::type*
+			>
+			void insert( iterator pos, InputIterator first, InputIterator last ) {
+				pos;
+				first;
+				last;
 			}
 
 			iterator erase (iterator position) {
@@ -347,18 +369,9 @@ class ReversevectorIterator {
 			}
 
 			void swap (vector& x) {
-				size_type size = x._size;
-				size_type capacity = x._capacity;
-				value_type *m_ptr = x._m_ptr;
-				allocator_type allocator = x._allocator;
-				x._size = this->_size;
-				x._capacity = this->_capacity;
-				x._m_ptr = this->_m_ptr;
-				x._allocator = this->_allocator;
-				this->_size = size;
-				this->_capacity = capacity;
-				this->_m_ptr = m_ptr;
-				this->_allocator = allocator;
+				vector<value_type, allocator_type>	buf = *this;
+				*this = x;
+				x = buf;
 			}
 
 			void clear() {
@@ -375,29 +388,48 @@ class ReversevectorIterator {
 			}
 
 		private:
-			void _smart_change_capacity(size_type new_capacity) {
-				if (new_capacity > 2 * _size) {
-					_raw_change_capacity(new_capacity);
-				} else {
-					_raw_change_capacity(_size * 2);
+
+			void	__hidden_constructor (size_type n, const value_type& val, true_type) {
+				_m_ptr = _allocator.allocate(n);
+				for (size_t i = 0; i < n; i++)
+					_allocator.construct(&_m_ptr[i], val);
+				_capacity = n;
+				_size = n;
+			}
+
+			template <typename InputIterator>
+			void	__hidden_constructor (InputIterator first, InputIterator last, false_type) {
+				_m_ptr = _allocator.allocate(std::distance(first, last));
+				size_t i = 0;
+				while (first != last) {
+					_allocator.construct(&_m_ptr[i++], *first);
+					++first;
 				}
 			}
 
-			void _raw_change_capacity(size_type new_capacity) {
+			void __smart_change_capacity(size_type new_capacity) {
+				if (new_capacity > 2 * _size) {
+					__raw_change_capacity(new_capacity);
+				} else {
+					__raw_change_capacity(_size * 2);
+				}
+			}
+
+			void __raw_change_capacity(size_type new_capacity) {
 				if (new_capacity != _capacity) {
 					value_type *temp = _allocator.allocate(new_capacity);
 
 					for (size_t i = 0; i < _size; i++) {
 						_allocator.construct(&temp[i], _m_ptr[i]);
 					}
-					_destroy_vector();
+					__destroy_vector();
 
 					_m_ptr = temp;
 					_capacity = new_capacity;
 				}
 			}
 
-			void _destroy_vector() {
+			void __destroy_vector() {
 				if (_capacity > 0) {
 					if (_size > 0) {
 						for (size_t i = 0; i < _size; i++) {
@@ -408,14 +440,15 @@ class ReversevectorIterator {
 				}
 			}
 
-			bool _check_Iterator(std::random_access_iterator_tag) {
+			bool __check_Iterator(std::random_access_iterator_tag) {
 				return true;
 			}
 
-			bool _check_Iterator() {
+			bool __check_Iterator() {
 				return false;
 			}
 	};
+}
 
 
 #endif
