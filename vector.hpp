@@ -149,8 +149,6 @@ class ReversevectorIterator {
 				__hidden_constructor(first, last, itegral());
 			}
 
-
-
 			vector (const vector& other) :
 			 _m_ptr(NULL), _capacity(other.capacity()), _size(other.size()), _allocator(other.get_allocator()) {
 				_m_ptr = _allocator.allocate(_capacity);
@@ -162,12 +160,12 @@ class ReversevectorIterator {
 				__destroy_vector();
 			}
 
-			vector&				operator= (const vector& x) {
-				_m_ptr = x._m_ptr;
-				_capacity = x._capacity;
-				_size = x._size;
-				_allocator = x._allocator;
-				return (*this);
+			vector&				operator= (const vector& other) {
+				for (size_type i = 0; i < this->_size; i++)
+					this->_allocator.destroy(&this->_m_ptr[i]);
+				this->_size = 0;
+				insert(this->begin(), other.begin(), other.end());
+				return *this;
 			 }
 
 			iterator			begin() {
@@ -242,10 +240,14 @@ class ReversevectorIterator {
 			}
 
 			reference at (size_type n) {
+				if (n >= _size)
+					throw std::out_of_range("you go out of range");
 				return (_m_ptr[n]);
 			}
 
 			const_reference at (size_type n) const {
+				if (n >= _size)
+					throw std::out_of_range("you go out of range");
 				return (_m_ptr[n]);
 			}
 
@@ -266,37 +268,14 @@ class ReversevectorIterator {
 			}
 
 			template <class InputIterator>
-				void assign (InputIterator first, InputIterator last,
-				typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = NULL) {
-					__destroy_vector();
-					size_type	new_capacity = std::distance(first, last);
-					if (new_capacity > _capacity) {
-						_m_ptr = _allocator.allocate(new_capacity);
-						_capacity = new_capacity;
-					} else {
-						_m_ptr = _allocator.allocate(_capacity);
-					}
-					for (size_t i = 0; i < new_capacity; i++) {
-						_allocator.construct(&_m_ptr[i], *first);
-						first++;
-						if (first == last)
-							break;
-					}
-					_size = new_capacity;
+				void assign (InputIterator first, InputIterator last) {
+					typedef typename ft::is_integral<InputIterator>::type		itegral;
+
+					__hidden_assign(first, last, itegral());
 				}
 
 			void assign (size_type n, const value_type& val) {
-				__destroy_vector();
-				if (n > _capacity) {
-					_m_ptr = _allocator.allocate(n);
-					_capacity = n;
-				} else {
-					_m_ptr = _allocator.allocate(_capacity);
-				}
-				for (size_t i = 0; i < n; i++) {
-					_allocator.construct(&_m_ptr[i], val);
-				}
-				_size = n;
+				__hidden_assign(n, val, true_type());
 			}
 
 			void push_back (const value_type& val) {
@@ -321,33 +300,14 @@ class ReversevectorIterator {
 			}
 
 			void insert (iterator position, size_type n, const value_type& val) {
-				size_type size = _size + n;
-				size_type diff = std::distance(begin(), position);
-				if (size > _capacity) {
-					__smart_change_capacity(size);
-				}
-				value_type *dst = _m_ptr + size - 1;
-				value_type *begin = _m_ptr + _size - 1;
-				value_type *end = _m_ptr + diff;
-				while (begin >= end) {
-					_allocator.construct(dst, *begin);
-					--dst;
-					--begin;
-				}
-				for (size_type i = diff; i < diff + n; i++) {
-					_allocator.destroy(&_m_ptr[i]);
-					_allocator.construct(&_m_ptr[i], val);
-				}
-				_size = size;
+				__hidden_insert(position, n, val, true_type());
 			}
 
-			template< class InputIterator,
-					  typename std::enable_if<!is_integral<InputIterator>::value, InputIterator>::type*
-			>
+			template< class InputIterator>
 			void insert( iterator pos, InputIterator first, InputIterator last ) {
-				pos;
-				first;
-				last;
+				typedef typename ft::is_integral<InputIterator>::type		itegral;
+
+				__hidden_insert(pos, first, last, itegral());
 			}
 
 			iterator erase (iterator position) {
@@ -399,11 +359,77 @@ class ReversevectorIterator {
 
 			template <typename InputIterator>
 			void	__hidden_constructor (InputIterator first, InputIterator last, false_type) {
-				_m_ptr = _allocator.allocate(std::distance(first, last));
+				size_t size = std::distance(first, last);
+				_m_ptr = _allocator.allocate(size);
 				size_t i = 0;
 				while (first != last) {
 					_allocator.construct(&_m_ptr[i++], *first);
 					++first;
+				}
+				_size = size;
+				_capacity = size;
+			}
+
+			void	__hidden_assign (size_type n, const value_type& val, true_type) {
+				__destroy_vector();
+				if (n > _capacity) {
+					_m_ptr = _allocator.allocate(n);
+					_capacity = n;
+				} else {
+					_m_ptr = _allocator.allocate(_capacity);
+				}
+				for (size_t i = 0; i < n; i++) {
+					_allocator.construct(&_m_ptr[i], val);
+				}
+				_size = n;
+			}
+
+			template <typename InputIterator>
+			void	__hidden_assign (InputIterator first, InputIterator last, false_type) {
+				__destroy_vector();
+				size_type	new_capacity = std::distance(first, last);
+				if (new_capacity > _capacity) {
+					_m_ptr = _allocator.allocate(new_capacity);
+					_capacity = new_capacity;
+				} else {
+					_m_ptr = _allocator.allocate(_capacity);
+				}
+				for (size_t i = 0; i < new_capacity; i++) {
+					_allocator.construct(&_m_ptr[i], *first);
+					first++;
+					if (first == last)
+						break;
+				}
+				_size = new_capacity;
+			}
+
+			void	__reverse_insert(pointer dst, pointer begin, pointer end) {
+				while (begin >= end) {
+					this->_allocator.construct(dst, *begin);
+					--begin;
+					--dst;
+				}
+			}
+
+			void	__hidden_insert(iterator position, size_type n, const value_type& val, true_type) {
+				size_type diff = std::distance(begin(), position);
+
+				__smart_change_capacity(n + _size);
+				__reverse_insert(&_m_ptr[n + this->_size - 1], &_m_ptr[this->_size - 1], &_m_ptr[diff]);
+				for (size_type i = diff; i < n; i++) {
+					this->_allocator.construct(&_m_ptr[i], val);
+				}
+			}
+
+			template <typename InputIterator>
+			void	__hidden_insert( iterator position, InputIterator first, InputIterator last, false_type) {
+				size_type diff = std::distance(begin(), position);
+				size_type size = std::distance(first, last);
+
+				__smart_change_capacity(size + _size);
+				__reverse_insert(&_m_ptr[size + this->_size - 1], &_m_ptr[this->_size - 1], &_m_ptr[diff]);
+				for (size_type i = diff; i < static_cast<size_type>(size) + diff; i++) {
+					this->_allocator.construct(&_m_ptr[i], *first++);
 				}
 			}
 
@@ -417,14 +443,14 @@ class ReversevectorIterator {
 
 			void __raw_change_capacity(size_type new_capacity) {
 				if (new_capacity != _capacity) {
-					value_type *temp = _allocator.allocate(new_capacity);
+					value_type *new_vector = _allocator.allocate(new_capacity);
 
 					for (size_t i = 0; i < _size; i++) {
-						_allocator.construct(&temp[i], _m_ptr[i]);
+						_allocator.construct(&new_vector[i], _m_ptr[i]);
 					}
 					__destroy_vector();
 
-					_m_ptr = temp;
+					_m_ptr = new_vector;
 					_capacity = new_capacity;
 				}
 			}
@@ -438,6 +464,8 @@ class ReversevectorIterator {
 					}
 					_allocator.deallocate(_m_ptr, _capacity);
 				}
+				_size = 0;
+				_capacity = 0;
 			}
 
 			bool __check_Iterator(std::random_access_iterator_tag) {
