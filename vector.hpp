@@ -9,6 +9,7 @@
 # include <typeinfo>
 # include "IteratorTraits.hpp"
 # include "Utils.hpp"
+# include "compare_utils.hpp"
 
 namespace ft {
 
@@ -24,24 +25,28 @@ namespace ft {
 
 			vectorIterator() {}
 
-			vectorIterator(value_type* ptr)
+			vectorIterator(const T ptr)
 				: m_ptr(ptr) {}
+
+			template<typename Iter>
+			vectorIterator(const vectorIterator<Iter> it) 
+				: m_ptr(it.base()) {}
 			
 			vectorIterator& operator++() {
 				++m_ptr;
 				return *this;
 			}
-			vectorIterator& operator++(int) {
-				vectorIterator* temp = this;
+			vectorIterator operator++(int) {
+				vectorIterator temp = *this;
 				++(*this);
-				return *temp;
+				return temp;
 			}
 			vectorIterator& operator--() {
 				--m_ptr;
 				return *this;
 			}
-			vectorIterator& operator--(int) {
-				vectorIterator* temp = *this;
+			vectorIterator operator--(int) {
+				vectorIterator temp = *this;
 				--(*this);
 				return temp;
 			}
@@ -60,11 +65,11 @@ namespace ft {
 			bool operator != (const vectorIterator& o) const {
 				return !(m_ptr == o.m_ptr);
 			}
-			pointer		base() {
+			pointer const		base() const {
 				return m_ptr;
 			}
 
-			vectorIterator	operator + (difference_type n) {
+			vectorIterator	operator + (difference_type n) const {
 				vectorIterator	dst = *this;
 				dst.m_ptr += n;
 				return dst;
@@ -75,7 +80,7 @@ namespace ft {
 				return *this;
 			}
 
-			vectorIterator	operator - (difference_type n) {
+			vectorIterator	operator - (difference_type n) const {
 				vectorIterator	dst = *this;
 				dst.m_ptr -= n;
 				return dst;
@@ -103,9 +108,200 @@ namespace ft {
 			pointer		m_ptr;
 	};
 
-class ReversevectorIterator {
+	template <typename Iter>
+	typename ft::vectorIterator<Iter>
+	operator + (typename ft::vectorIterator<Iter>::difference_type lhs,
+				ft::vectorIterator<Iter> rhs) {
+		return rhs + lhs;
+	}
 
-};
+	template <typename Iter>
+	typename ft::iterator_traits<Iter>::difference_type
+	operator - (ft::vectorIterator<Iter> lhs,
+				ft::vectorIterator<Iter> rhs) {
+		return lhs.base() - rhs.base();
+	}
+
+	template <typename T_L, typename T_R>
+	typename ft::iterator_traits<T_L>::difference_type
+	operator - (ft::vectorIterator<T_L> lhs,
+				ft::vectorIterator<T_R> rhs) {
+		return lhs.base() - rhs.base();
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator == (const ft::vectorIterator<T_L> lhs, ft::vectorIterator<T_R> rhs) {
+		return lhs.base() == rhs.base();
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator != (const ft::vectorIterator<T_L> lhs, ft::vectorIterator<T_R> rhs) {
+		return !(lhs == rhs);
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator < (const ft::vectorIterator<T_L> lhs, ft::vectorIterator<T_R> rhs) {
+		return lhs.base() < rhs.base();
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator > (const ft::vectorIterator<T_L> lhs, ft::vectorIterator<T_R> rhs) {
+		return rhs < lhs;
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator <= (const ft::vectorIterator<T_L> lhs, ft::vectorIterator<T_R> rhs) {
+		return !(lhs > rhs);
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator >= (const ft::vectorIterator<T_L> lhs, ft::vectorIterator<T_R> rhs) {
+		return !(lhs < rhs);
+	}
+
+	template<typename Iter>
+	class reverseIterator {
+		public:
+			typedef	Iter										iterator_type;
+			typedef	ft::iterator_traits<iterator_type>			iterator_traits;
+			typedef typename iterator_traits::difference_type	difference_type;
+			typedef typename iterator_traits::value_type		value_type;
+			typedef typename iterator_traits::pointer			pointer;
+			typedef typename iterator_traits::reference			reference;
+			typedef typename iterator_traits::iterator_category	iterator_category;
+
+			reverseIterator() {}
+
+			reverseIterator(const iterator_type ptr)
+				: _it(ptr) {}
+
+			template<typename RIter>
+			reverseIterator(const reverseIterator<RIter> it) 
+				: _it(it.base()) {}
+			
+			template<typename RIter>
+			reverseIterator& operator=(const reverseIterator<RIter> &it) {
+				_it = it.base();
+				return *this;
+			}
+
+			reverseIterator& operator++() {
+				--_it;
+				return *this;
+			}
+			reverseIterator operator++(int) {
+				reverseIterator temp = *this;
+				--_it;
+				return temp;
+			}
+			reverseIterator& operator--() {
+				++_it;
+				return *this;
+			}
+			reverseIterator operator--(int) {
+				reverseIterator temp = *this;
+				++_it;
+				return temp;
+			}
+			reference	operator[](int index) {
+				return *(_it + index);
+			}
+			pointer		operator->() {
+				iterator_type temp = _it;
+				--temp;
+				return temp.operator->();
+			}
+			reference	operator*() {
+				iterator_type temp = _it;
+				--temp;
+				return *temp;
+			}
+			bool operator == (const reverseIterator& o) const {
+				return _it == o._it;
+			}
+			bool operator != (const reverseIterator& o) const {
+				return !(_it == o._it);
+			}
+			iterator_type		base() const {
+				return _it;
+			}
+
+			reverseIterator	operator + (difference_type n) const {
+				reverseIterator	dst = *this;
+				dst._it -= n;
+				return dst;
+			}
+
+			reverseIterator	&operator += (difference_type n) {
+				this->_it -= n;
+				return *this;
+			}
+
+			reverseIterator	operator - (difference_type n) const {
+				reverseIterator	dst = *this;
+				dst._it += n;
+				return dst;
+			}
+
+			reverseIterator	&operator -= (difference_type n) {
+				this->_it += n;
+				return *this;
+			}
+
+		private:
+			iterator_type	_it;
+	};
+
+	template <typename T_L, typename T_R>
+	bool    operator == (const ft::reverseIterator<T_L> &lhs, const ft::reverseIterator<T_R> &rhs) {
+		return lhs.base() == rhs.base();
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator != (const ft::reverseIterator<T_L> &lhs, const ft::reverseIterator<T_R> &rhs) {
+		return !(lhs == rhs);
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator < (const ft::reverseIterator<T_L> &lhs, const ft::reverseIterator<T_R> &rhs) {
+		return lhs.base() > rhs.base();
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator > (const ft::reverseIterator<T_L> &lhs, const ft::reverseIterator<T_R> &rhs) {
+		return rhs < lhs;
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator <= (const ft::reverseIterator<T_L> &lhs, const ft::reverseIterator<T_R> &rhs) {
+		return !(lhs > rhs);
+	}
+
+	template <typename T_L, typename T_R>
+	bool    operator >= (const ft::reverseIterator<T_L> &lhs, const ft::reverseIterator<T_R> &rhs) {
+		return !(lhs < rhs);
+	}
+
+	template <typename Iter>
+	reverseIterator<Iter>
+	operator + (typename ft::reverseIterator<Iter>::difference_type n,
+				const ft::reverseIterator<Iter> &it) {
+		return it + n;
+	}
+
+	template <typename Iter>
+	typename ft::reverseIterator<Iter>::difference_type
+	operator - (const ft::reverseIterator<Iter> &lhs,
+				const ft::reverseIterator<Iter> &rhs) {
+		return rhs.base() - lhs.base();
+	}
+
+	template <typename T_L, typename T_R>
+	typename ft::iterator_traits<T_L>::difference_type
+	operator - (ft::reverseIterator<T_L> lhs,
+				ft::reverseIterator<T_R> rhs) {
+		return rhs.base() - lhs.base();
+	}
 
  template < typename T, typename Alloc = std::allocator<T> >
 	class vector {
@@ -119,8 +315,8 @@ class ReversevectorIterator {
 			typedef typename allocator_type::const_pointer		const_pointer;
 			typedef vectorIterator<pointer> 					iterator;
 			typedef vectorIterator<const_pointer>				const_iterator;
-			typedef ReversevectorIterator				reverse_iterator;
-			typedef ReversevectorIterator		const_reverse_iterator;
+			typedef reverseIterator<iterator>					reverse_iterator;
+			typedef reverseIterator<const_iterator>				const_reverse_iterator;
 			typedef ptrdiff_t									difference_type;
 			typedef size_t										size_type;
 
@@ -188,8 +384,16 @@ class ReversevectorIterator {
 				return (reverse_iterator(end()));
 			}
 
+			const_reverse_iterator	rbegin() const {
+				return (const_reverse_iterator(end()));
+			}
+
 			reverse_iterator	rend() {
 				return (reverse_iterator(begin()));
+			}
+
+			const_reverse_iterator	rend() const {
+				return (const_reverse_iterator(begin()));
 			}
 
 			size_type			size(void) const {
@@ -210,14 +414,14 @@ class ReversevectorIterator {
 
 			void resize (size_type n, value_type val = value_type()) {
 				if (n < _size) {
-					for (size_t i = n; i < _size; i++)
+					for (size_type i = n; i < _size; i++)
 					{
 						_allocator.destroy(&_m_ptr[i]);
 					}
 					_size = n;
 				} else if (_size < n) {
 					__smart_change_capacity(n);
-					for (size_t i = _size; i < n; i++)
+					for (size_type i = _size; i < n; i++)
 					{
 						_allocator.construct(&_m_ptr[i], val);
 					}
@@ -315,10 +519,10 @@ class ReversevectorIterator {
 			}
 
 			iterator erase (iterator first, iterator last) {
-				difference_type diff = std::distance(begin(), first);
-				difference_type n = std::distance(first, last);
+				size_type diff = std::distance(begin(), first);
+				size_type n = std::distance(first, last);
 
-				for (difference_type i = diff; i < _size; i++)
+				for (size_type i = diff; i < _size; i++)
 				{
 					_allocator.destroy(&_m_ptr[i]);
 					_allocator.construct(&_m_ptr[i], _m_ptr[i + n]);
@@ -336,7 +540,7 @@ class ReversevectorIterator {
 
 			void clear() {
 				if (_size > 0) {
-						for (size_t i = 0; i < _size; i++) {
+						for (size_type i = 0; i < _size; i++) {
 							_allocator.destroy(&_m_ptr[i]);
 						}
 						_size = 0;
@@ -351,7 +555,7 @@ class ReversevectorIterator {
 
 			void	__hidden_constructor (size_type n, const value_type& val, true_type) {
 				_m_ptr = _allocator.allocate(n);
-				for (size_t i = 0; i < n; i++)
+				for (size_type i = 0; i < n; i++)
 					_allocator.construct(&_m_ptr[i], val);
 				_capacity = n;
 				_size = n;
@@ -359,9 +563,9 @@ class ReversevectorIterator {
 
 			template <typename InputIterator>
 			void	__hidden_constructor (InputIterator first, InputIterator last, false_type) {
-				size_t size = std::distance(first, last);
+				size_type size = std::distance(first, last);
 				_m_ptr = _allocator.allocate(size);
-				size_t i = 0;
+				size_type i = 0;
 				while (first != last) {
 					_allocator.construct(&_m_ptr[i++], *first);
 					++first;
@@ -378,7 +582,7 @@ class ReversevectorIterator {
 				} else {
 					_m_ptr = _allocator.allocate(_capacity);
 				}
-				for (size_t i = 0; i < n; i++) {
+				for (size_type i = 0; i < n; i++) {
 					_allocator.construct(&_m_ptr[i], val);
 				}
 				_size = n;
@@ -394,7 +598,7 @@ class ReversevectorIterator {
 				} else {
 					_m_ptr = _allocator.allocate(_capacity);
 				}
-				for (size_t i = 0; i < new_capacity; i++) {
+				for (size_type i = 0; i < new_capacity; i++) {
 					_allocator.construct(&_m_ptr[i], *first);
 					first++;
 					if (first == last)
@@ -416,9 +620,10 @@ class ReversevectorIterator {
 
 				__smart_change_capacity(n + _size);
 				__reverse_insert(&_m_ptr[n + this->_size - 1], &_m_ptr[this->_size - 1], &_m_ptr[diff]);
-				for (size_type i = diff; i < n; i++) {
+				for (size_type i = diff; i < diff + n; i++) {
 					this->_allocator.construct(&_m_ptr[i], val);
 				}
+				_size += n;
 			}
 
 			template <typename InputIterator>
@@ -428,9 +633,10 @@ class ReversevectorIterator {
 
 				__smart_change_capacity(size + _size);
 				__reverse_insert(&_m_ptr[size + this->_size - 1], &_m_ptr[this->_size - 1], &_m_ptr[diff]);
-				for (size_type i = diff; i < static_cast<size_type>(size) + diff; i++) {
+				for (size_type i = diff; i < size + diff; i++) {
 					this->_allocator.construct(&_m_ptr[i], *first++);
 				}
+				_size += size;
 			}
 
 			void __smart_change_capacity(size_type new_capacity) {
@@ -444,21 +650,22 @@ class ReversevectorIterator {
 			void __raw_change_capacity(size_type new_capacity) {
 				if (new_capacity != _capacity) {
 					value_type *new_vector = _allocator.allocate(new_capacity);
-
-					for (size_t i = 0; i < _size; i++) {
+					size_type size = _size;
+					for (size_type i = 0; i < _size; i++) {
 						_allocator.construct(&new_vector[i], _m_ptr[i]);
 					}
 					__destroy_vector();
 
 					_m_ptr = new_vector;
 					_capacity = new_capacity;
+					_size = size;
 				}
 			}
 
 			void __destroy_vector() {
 				if (_capacity > 0) {
 					if (_size > 0) {
-						for (size_t i = 0; i < _size; i++) {
+						for (size_type i = 0; i < _size; i++) {
 							_allocator.destroy(&_m_ptr[i]);
 						}
 					}
@@ -478,5 +685,34 @@ class ReversevectorIterator {
 	};
 }
 
+	template <typename T>
+	bool    operator == (const ft::vector<T> &lhs, const ft::vector<T> &rhs) {
+		return lhs.size() == rhs.size() && ft::equal(lhs.begin(), lhs.end(), rhs.begin());
+	}
+
+	template <typename T>
+	bool    operator != (const ft::vector<T> &lhs, const ft::vector<T> &rhs) {
+		return !(lhs == rhs);
+	}
+
+	template <typename T>
+	bool    operator < (const ft::vector<T> &lhs, const ft::vector<T> &rhs) {
+		return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+	}
+
+	template <typename T>
+	bool    operator > (const ft::vector<T> &lhs, const ft::vector<T> &rhs) {
+		return rhs < lhs;
+	}
+
+	template <typename T>
+	bool    operator <= (const ft::vector<T> &lhs, const ft::vector<T> &rhs) {
+		return !(lhs > rhs);
+	}
+
+	template <typename T>
+	bool    operator >= (const ft::vector<T> &lhs, const ft::vector<T> &rhs) {
+		return !(lhs < rhs);
+	}
 
 #endif
