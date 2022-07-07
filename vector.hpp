@@ -7,10 +7,10 @@
 # include <cstddef>
 # include <stdexcept>
 # include <typeinfo>
-# include "vector_iterator.hpp"
-# include "reverse_iterator.hpp"
-# include "is_integral.hpp"
 # include "compare_utils.hpp"
+# include "is_integral.hpp"
+# include "reverse_iterator.hpp"
+# include "vector_iterator.hpp"
 
 namespace ft {
 
