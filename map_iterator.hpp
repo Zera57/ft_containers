@@ -1,9 +1,11 @@
 #ifndef __MAP_ITERATOR_HPP__
 # define __MAP_ITERATOR_HPP__
 
+# include "iterator_traits.hpp"
+
 namespace ft {
 
-    template <typename T>
+	template <typename T, typename N>
 	class map_iterator : public std::iterator<std::bidirectional_iterator_tag, T> {
 		public:
 			typedef	ft::iterator_traits<T>						iterator_traits;
@@ -13,6 +15,14 @@ namespace ft {
 			typedef typename iterator_traits::reference			reference;
 			typedef typename iterator_traits::iterator_category	iterator_category;
 
+			typedef N<T>										node;
+
+		private:
+			typedef map_node<value_type>    node_type;
+			typedef node_type*              node_pointer;
+			typedef node_type&              node_reference;
+
+		public:
 			map_iterator() {}
 
 			map_iterator(const T ptr)
@@ -26,14 +36,14 @@ namespace ft {
 				++m_ptr;
 				return *this;
 			}
-            map_iterator& operator--() {
+			map_iterator& operator--() {
 				--m_ptr;
 				return *this;
 			}
 
 		private:
-			pointer		m_ptr;
-    };
+			node_pointer		m_node;
+	};
 }
 
 #endif
