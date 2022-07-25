@@ -232,13 +232,12 @@ namespace ft {
 			iterator erase (iterator first, iterator last) {
 				size_type diff = std::distance(begin(), first);
 				size_type n = std::distance(first, last);
-
+				_size -= n;
 				for (size_type i = diff; i < _size; i++)
 				{
 					_allocator.destroy(&_m_ptr[i]);
 					_allocator.construct(&_m_ptr[i], _m_ptr[i + n]);
 				}
-				_size -= n;
 
 				return (_m_ptr + diff);
 			}
