@@ -1,5 +1,5 @@
-#ifndef __xXx_ITERATOR_TRAITS_HPP_xXx__
-# define __xXx_ITERATOR_TRAITS_HPP_xXx__
+#ifndef __ITERATOR_TRAITS_HPP__
+# define __ITERATOR_TRAITS_HPP__
 
 # include <iterator>
 

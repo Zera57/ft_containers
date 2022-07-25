@@ -3,15 +3,15 @@
 
 namespace ft {
 
-    template <typename T>
-    struct map_node
-    {
-        T           *value;
-        map_node    *parent;
-        map_node    *left;
-        map_node    *right;
-    };
-    
+	template <typename T>
+	struct map_node
+	{
+		T           *value;
+		map_node    *parent;
+		map_node    *left;
+		map_node    *right;
+	};
+	
 }
 
 #endif
