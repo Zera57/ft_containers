@@ -15,34 +15,107 @@ namespace ft {
 			typedef typename iterator_traits::reference			reference;
 			typedef typename iterator_traits::iterator_category	iterator_category;
 
-			typedef N<T>										node;
 
 		private:
-			typedef map_node<value_type>    node_type;
-			typedef node_type*              node_pointer;
-			typedef node_type&              node_reference;
+			typedef N<T>										node_type;
+			typedef *node										node_pointer;
+			typedef &node										node_reference;
 
 		public:
 			map_iterator() {}
 
-			map_iterator(const T ptr)
-				: m_ptr(ptr) {}
+			map_iterator(const node_type node)
+				: m_node(node) {}
 
 			template<typename Iter>
 			map_iterator(const map_iterator<Iter> it) 
-				: m_ptr(it.base()) {}
+				: m_node(*m_node) {}
 
 			map_iterator& operator++() {
-				++m_ptr;
+				node_pointer result;
+
+				// TODO: продумать логику end
+				if (check_nill_node(result->parent)/* && result->right == previous*/) {
+					
+				}
+				// спускаемся по мапе
+				else if (!check_nill_node(m_node->right)) {
+					result = iterate_down_left();
+				}
+				// поднимаемся по мапе
+				else if (!check_nill_node(m_node->parent)) {
+					result = iterate_up_left();
+				}
+				m_node = result;
 				return *this;
 			}
+			
 			map_iterator& operator--() {
-				--m_ptr;
+				node_pointer result;
+
+				// TODO: продумать логику end
+				if (check_nill_node(result->parent)/* && result->right == previous*/) {
+					
+				}
+				// спускаемся по мапе
+				else if (!check_nill_node(m_node->left)) {
+					result = iterate_down_right();
+				}
+				// поднимаемся по мапе
+				else if (!check_nill_node(m_node->parent)) {
+					result = iterate_up_right();
+				}
+				m_node = result;
 				return *this;
 			}
 
 		private:
-			node_pointer		m_node;
+			node_pointer		 m_node;
+
+			node_pointer			iterate_down_left() {
+				node_pointer result = m_node->right;
+				while (!check_nill_node(result->left)) {
+					result = result->left;
+				}
+				return result;
+			}
+
+			node_pointer			iterate_up_left() {
+				node_pointer result = m_node->parent;
+				node_pointer previous = m_node;
+
+				while (!check_nill_node(result) || result->right == previous) {
+					previous = result;
+					result = result->parent;
+				}
+				return result;
+			}
+
+			node_pointer			iterate_down_right() {
+				node_pointer result = m_node->left;
+				while (!check_nill_node(result->right)) {
+					result = result->right;
+				}
+				return result;
+			}
+
+			node_pointer			iterate_up_right() {
+				node_pointer result = m_node->parent;
+				node_pointer previous = m_node;
+
+				while (!check_nill_node(result) || result->left == previous) {
+					previous = result;
+					result = result->parent;
+				}
+				return result;
+			}
+
+			bool			check_nill_node(node_pointer node) {
+				if (node->value != NULL) {
+					return false;
+				}
+				return true;
+			}
 	};
 }
 
