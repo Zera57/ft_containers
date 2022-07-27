@@ -181,8 +181,8 @@ namespace ft {
 
 				if (leaf->left == _nill && _key_compare(value, leaf->value->first)) {
 					return _init_node(leaf->left, value);
-				} else if (leaf->rigth == _nill && _key_compare(leaf->value->first, value)) {
-					return _init_node(leaf->rigth, value);
+				} else if (leaf->right == _nill && _key_compare(leaf->value->first, value)) {
+					return _init_node(leaf->right, value);
 				}
 
 			}
@@ -200,8 +200,8 @@ namespace ft {
 				while (it->value->first != NULL) {
 					if (it->left != _nill && _key_compare(value, it->value->first)) {
 						it = it->left;
-					} else if (it->rigth != _nill && _key_compare(it->value->first, value)) {
-						it = it->rigth;
+					} else if (it->right != _nill && _key_compare(it->value->first, value)) {
+						it = it->right;
 					} else {
 						return it;
 					}
@@ -211,7 +211,7 @@ namespace ft {
 			void    _init_nill() {
 				_nill->parent = _nill;
 				_nill->left = _nill;
-				_nill->rigth = _nill;
+				_nill->right = _nill;
 				_nill->value = NULL;
 			}
 
