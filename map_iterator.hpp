@@ -32,22 +32,14 @@ namespace ft {
 				: m_node(*m_node) {}
 
 			map_iterator& operator++() {
-				node_pointer result;
-
-				// TODO: продумать логику end
-				if (check_nill_node(result->parent)/* && result->right == previous*/) {
-					
-				}
-				// спускаемся по мапе
-				else if (!check_nill_node(m_node->right)) {
-					result = iterate_down_left();
-				}
-				// поднимаемся по мапе
-				else if (!check_nill_node(m_node->parent)) {
-					result = iterate_up_left();
-				}
-				m_node = result;
+				m_node = iterator_increment(m_node);
 				return *this;
+			}
+			
+			map_iterator& operator++(int) {
+				vector_iterator temp = *this;
+				m_node = iterator_increment(m_node);
+				return temp;
 			}
 			
 			map_iterator& operator--() {
@@ -72,42 +64,67 @@ namespace ft {
 		private:
 			node_pointer		 m_node;
 
-			node_pointer			iterate_down_left() {
-				node_pointer result = m_node->right;
-				while (!check_nill_node(result->left)) {
-					result = result->left;
+			node_pointer			iterator_increment(node_pointer node) {
+				// TODO: продумать логику end
+				if (check_nill_node(node->parent)/* && node->right == previous*/) {
+					
 				}
-				return result;
+				// спускаемся по мапе
+				else if (!check_nill_node(node->right)) {
+					node = iterate_down_left(node->right);
+				}
+				// поднимаемся по мапе
+				else if (!check_nill_node(node->parent)) {
+					node = iterate_up_left(node->parent, node);
+				}
+				return node;
 			}
 
-			node_pointer			iterate_up_left() {
-				node_pointer result = m_node->parent;
-				node_pointer previous = m_node;
-
-				while (!check_nill_node(result) || result->right == previous) {
-					previous = result;
-					result = result->parent;
+		
+			node_pointer			iterator_decrement(node_pointer node) {
+				// TODO: продумать логику end
+				if (check_nill_node(node)/* && node->right == previous*/) {
+					
 				}
-				return result;
+				// спускаемся по мапе
+				else if (!check_nill_node(m_node->left)) {
+					node = iterate_down_right(m_node->left);
+				}
+				// поднимаемся по мапе
+				else if (!check_nill_node(m_node->parent)) {
+					node = iterate_up_right(m_node->parent, node);
+				}
+				return node;
 			}
 
-			node_pointer			iterate_down_right() {
-				node_pointer result = m_node->left;
-				while (!check_nill_node(result->right)) {
-					result = result->right;
+			node_pointer			iterate_down_left(node_pointer node) {
+				while (!check_nill_node(node->left)) {
+					node = node->left;
 				}
-				return result;
+				return node;
 			}
 
-			node_pointer			iterate_up_right() {
-				node_pointer result = m_node->parent;
-				node_pointer previous = m_node;
-
-				while (!check_nill_node(result) || result->left == previous) {
-					previous = result;
-					result = result->parent;
+			node_pointer			iterate_up_left(node_pointer node, node_pointer previous) {
+				while (!check_nill_node(node) || node->right == previous) {
+					previous = node;
+					node = node->parent;
 				}
-				return result;
+				return node;
+			}
+
+			node_pointer			iterate_down_right(node_pointer node) {
+				while (!check_nill_node(node->right)) {
+					node = node->right;
+				}
+				return node;
+			}
+
+			node_pointer			iterate_up_right(node_pointer node, node_pointer previous) {
+				while (!check_nill_node(node) || node->left == previous) {
+					previous = node;
+					node = node->parent;
+				}
+				return node;
 			}
 
 			bool			check_nill_node(node_pointer node) {
