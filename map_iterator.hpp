@@ -17,9 +17,9 @@ namespace ft {
 
 
 		private:
-			typedef N<T>										node_type;
-			typedef *node										node_pointer;
-			typedef &node										node_reference;
+			typedef N												node_type;
+			typedef node_type*										node_pointer;
+			typedef node_type&										node_reference;
 
 		public:
 			map_iterator() {}
@@ -43,22 +43,14 @@ namespace ft {
 			}
 			
 			map_iterator& operator--() {
-				node_pointer result;
-
-				// TODO: продумать логику end
-				if (check_nill_node(result->parent)/* && result->right == previous*/) {
-					
-				}
-				// спускаемся по мапе
-				else if (!check_nill_node(m_node->left)) {
-					result = iterate_down_right();
-				}
-				// поднимаемся по мапе
-				else if (!check_nill_node(m_node->parent)) {
-					result = iterate_up_right();
-				}
-				m_node = result;
+				m_node = iterator_decrement(m_node);
 				return *this;
+			}
+			
+			map_iterator& operator--(int) {
+				vector_iterator temp = *this;
+				m_node = iterator_derement(m_node);
+				return temp;
 			}
 
 		private:
