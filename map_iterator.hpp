@@ -2,34 +2,41 @@
 # define __MAP_ITERATOR_HPP__
 
 # include "iterator_traits.hpp"
+# include <iostream>
 
 namespace ft {
 
-	template <typename T, typename N>
-	class map_iterator : public std::iterator<std::bidirectional_iterator_tag, T> {
-		public:
-			typedef	ft::iterator_traits<T>						iterator_traits;
-			typedef typename iterator_traits::difference_type	difference_type;
-			typedef typename iterator_traits::value_type		value_type;
-			typedef typename iterator_traits::pointer			pointer;
-			typedef typename iterator_traits::reference			reference;
-			typedef typename iterator_traits::iterator_category	iterator_category;
-
+	template <typename N>
+	class map_iterator : public std::iterator<std::bidirectional_iterator_tag, N> {
 
 		private:
 			typedef N												node_type;
 			typedef node_type*										node_pointer;
 			typedef node_type&										node_reference;
+		public:
+			typedef typename node_type::value_type				value_type;
+			typedef value_type*									pointer;
+			typedef value_type&									reference;
+			typedef typename std::bidirectional_iterator_tag	iterator_category;
+			typedef std::ptrdiff_t								difference_type;
+
 
 		public:
 			map_iterator() {}
 
-			map_iterator(const node_type node)
+			map_iterator(const node_pointer node)
 				: m_node(node) {}
 
-			template<typename Iter>
-			map_iterator(const map_iterator<Iter> it) 
-				: m_node(*m_node) {}
+			map_iterator(const map_iterator &it) 
+				: m_node(it.m_node) {}
+
+			pointer		operator->() const {
+				return m_node->value;
+			}
+
+			reference	operator*() const {
+				return *m_node->value;
+			}
 
 			map_iterator& operator++() {
 				m_node = iterator_increment(m_node);
@@ -37,9 +44,9 @@ namespace ft {
 			}
 			
 			map_iterator& operator++(int) {
-				vector_iterator temp = *this;
+				map_iterator* temp = this;
 				m_node = iterator_increment(m_node);
-				return temp;
+				return *temp;
 			}
 			
 			map_iterator& operator--() {
@@ -48,9 +55,17 @@ namespace ft {
 			}
 			
 			map_iterator& operator--(int) {
-				vector_iterator temp = *this;
+				map_iterator temp = *this;
 				m_node = iterator_derement(m_node);
 				return temp;
+			}
+
+			bool operator == (const map_iterator& o) const {
+				return m_node == o.m_node;
+			}
+
+			bool operator != (const map_iterator& o) const {
+				return !(m_node == o.m_node);
 			}
 
 		private:
@@ -58,15 +73,18 @@ namespace ft {
 
 			node_pointer			iterator_increment(node_pointer node) {
 				// TODO: продумать логику end
-				if (check_nill_node(node->parent)/* && node->right == previous*/) {
+				if (check_nill_node(node)/* && node->right == previous*/) {
+					// std::cout << "Конец" << std::endl;
 					
 				}
 				// спускаемся по мапе
 				else if (!check_nill_node(node->right)) {
+					// std::cout << "Спускаемся" << std::endl;
 					node = iterate_down_left(node->right);
 				}
 				// поднимаемся по мапе
-				else if (!check_nill_node(node->parent)) {
+				else {
+					// std::cout << "Поднимаемся" << std::endl;
 					node = iterate_up_left(node->parent, node);
 				}
 				return node;
@@ -97,7 +115,7 @@ namespace ft {
 			}
 
 			node_pointer			iterate_up_left(node_pointer node, node_pointer previous) {
-				while (!check_nill_node(node) || node->right == previous) {
+				while (!check_nill_node(node) && node->right == previous) {
 					previous = node;
 					node = node->parent;
 				}

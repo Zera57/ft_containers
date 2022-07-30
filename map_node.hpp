@@ -6,7 +6,9 @@ namespace ft {
 	template <typename T>
 	struct map_node
 	{
-		T           *value;
+		typedef T	value_type;
+
+		value_type  *value;
 		map_node    *parent;
 		map_node    *left;
 		map_node    *right;
