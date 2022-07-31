@@ -10,10 +10,10 @@ namespace ft {
 	class map_iterator : public std::iterator<std::bidirectional_iterator_tag, N> {
 
 		private:
-		public:
 			typedef N												node_type;
 			typedef node_type*										node_pointer;
 			typedef node_type&										node_reference;
+		public:
 			typedef typename node_type::value_type				value_type;
 			typedef value_type*									pointer;
 			typedef value_type&									reference;
