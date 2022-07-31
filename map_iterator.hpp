@@ -10,10 +10,10 @@ namespace ft {
 	class map_iterator : public std::iterator<std::bidirectional_iterator_tag, N> {
 
 		private:
+		public:
 			typedef N												node_type;
 			typedef node_type*										node_pointer;
 			typedef node_type&										node_reference;
-		public:
 			typedef typename node_type::value_type				value_type;
 			typedef value_type*									pointer;
 			typedef value_type&									reference;
@@ -43,10 +43,10 @@ namespace ft {
 				return *this;
 			}
 			
-			map_iterator& operator++(int) {
-				map_iterator* temp = this;
+			map_iterator operator++(int) {
+				map_iterator temp = *this;
 				m_node = iterator_increment(m_node);
-				return *temp;
+				return temp;
 			}
 			
 			map_iterator& operator--() {
@@ -54,7 +54,7 @@ namespace ft {
 				return *this;
 			}
 			
-			map_iterator& operator--(int) {
+			map_iterator operator--(int) {
 				map_iterator temp = *this;
 				m_node = iterator_derement(m_node);
 				return temp;
@@ -68,6 +68,10 @@ namespace ft {
 				return !(m_node == o.m_node);
 			}
 
+			node_pointer		base() {
+				return m_node;
+			}
+
 		private:
 			node_pointer		 m_node;
 
@@ -75,7 +79,7 @@ namespace ft {
 				// TODO: продумать логику end
 				if (check_nill_node(node)/* && node->right == previous*/) {
 					// std::cout << "Конец" << std::endl;
-					
+					node = node->left;
 				}
 				// спускаемся по мапе
 				else if (!check_nill_node(node->right)) {
@@ -94,14 +98,14 @@ namespace ft {
 			node_pointer			iterator_decrement(node_pointer node) {
 				// TODO: продумать логику end
 				if (check_nill_node(node)/* && node->right == previous*/) {
-					
+					node = node->right;
 				}
 				// спускаемся по мапе
 				else if (!check_nill_node(m_node->left)) {
 					node = iterate_down_right(m_node->left);
 				}
 				// поднимаемся по мапе
-				else if (!check_nill_node(m_node->parent)) {
+				else {
 					node = iterate_up_right(m_node->parent, node);
 				}
 				return node;
@@ -130,7 +134,7 @@ namespace ft {
 			}
 
 			node_pointer			iterate_up_right(node_pointer node, node_pointer previous) {
-				while (!check_nill_node(node) || node->left == previous) {
+				while (!check_nill_node(node) && node->left == previous) {
 					previous = node;
 					node = node->parent;
 				}
