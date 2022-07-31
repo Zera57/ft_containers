@@ -52,12 +52,12 @@ namespace ft {
 			reference	operator[](int index) {
 				return *(*this + index);
 			}
-			pointer		operator->() {
+			pointer		operator->() const {
 				iterator_type temp = _it;
 				--temp;
 				return temp.operator->();
 			}
-			reference	operator*() {
+			reference	operator*() const {
 				iterator_type temp = _it;
 				--temp;
 				return *temp;
