@@ -39,7 +39,9 @@ namespace ft {
 			
 		public:
 			explicit vector (const allocator_type& alloc = allocator_type()) :
-				_m_ptr(NULL), _capacity(0), _size(0), _allocator(alloc) {}
+				_m_ptr(NULL), _capacity(0), _size(0), _allocator(alloc) {
+				//  std::cout << "construct" << std::endl;
+				}
 
 			explicit vector (size_type n, const value_type& val = value_type(),
 				 const allocator_type& alloc = allocator_type()) :
@@ -58,6 +60,9 @@ namespace ft {
 
 			vector (const vector& other) :
 			 _m_ptr(NULL), _capacity(other.capacity()), _size(other.size()), _allocator(other.get_allocator()) {
+				//  std::cout << "construct" << std::endl;
+				if (_capacity == 0)
+					return;
 				_m_ptr = _allocator.allocate(_capacity);
 				for (size_type i = 0; i < _size; i++)
 					_allocator.construct(&_m_ptr[i], other[i]);
