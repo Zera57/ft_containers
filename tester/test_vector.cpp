@@ -20,8 +20,8 @@ bool	array_diff(stdIt stdFirst, stdIt stdLast, ftIt ftFirst, ftIt ftLast) {
 
 void	vector_diff(const std::string test_name, const std::vector<int> &stdVec, const ft::vector<int> &ftVec) {
 	std::cout << "--" << test_name << "--" << std::endl;
-	std::cout << "size : " << ((stdVec.size() == ftVec.size()) ? "\033[32mok\033[m " : "\033[31mwrong\033[m") << ftVec.size() << std::endl;
-	std::cout << "capacity : " << ((stdVec.capacity() == ftVec.capacity()) ? "\033[32mok\033[m " : "\033[31mwrong\033[m") << ftVec.capacity() << " " << stdVec.capacity() << std::endl;
+	std::cout << "size : " << ((stdVec.size() == ftVec.size()) ? "\033[32mok\033[m " : "\033[31mwrong\033[m") << std::endl;
+	std::cout << "capacity : " << ((stdVec.capacity() == ftVec.capacity()) ? "\033[32mok\033[m " : "\033[31mwrong\033[m") << std::endl;
 	std::cout << "max_size : " << ((stdVec.max_size() == ftVec.max_size()) ? "\033[32mok\033[m " : "\033[31mwrong\033[m") << std::endl;
 	std::cout << "array diff : " << (!array_diff(stdVec.begin(), stdVec.end(), ftVec.begin(), ftVec.end()) ? "\033[32mok\033[m " : "\033[31mwrong\033[m") << std::endl;
 	std::cout << std::endl;
