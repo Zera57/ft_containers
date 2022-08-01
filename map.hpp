@@ -139,6 +139,12 @@ namespace ft {
 					insert(other.begin(), other.end());
 				}
 
+			~map() {
+				clear();
+				_allocator.deallocate(_nill->value, 1);
+				_node_allocator.deallocate(_nill, 1);
+			}
+
 			mapped_type		&operator [] (const key_type &key) {
 				return insert(ft::make_pair(key, mapped_type())).first->second;
 			}
@@ -336,7 +342,6 @@ namespace ft {
 			template< class InputIt >
 			void insert( InputIt first, InputIt last ) {
 				while (first != last) {
-					// std::cout << "insert " << first->first << std::endl;
 					insert(*first++);
 				}
 			}
@@ -347,8 +352,6 @@ namespace ft {
 			}
 
 			void erase( iterator pos ) {
-				// std::cout << "delete" << std::endl;
-				// std::cout << pos.base()->value->first << " | " << pos.base()->value->second << std::endl;
 				if (empty()) {
 					return;
 				}
@@ -370,12 +373,6 @@ namespace ft {
 				_destroy_node(node_to_delete);
 				
 				_recalculate_rben();
-				// std::cout << "root "<< std::endl;
-				// std::cout << _root << std::endl;
-				// std::cout << "_end " << _end << std::endl;
-				// std::cout << "_end->right " << _end->right->value << std::endl;
-				// std::cout << "_end->left " << _end->left << std::endl;
-				// std::cout << "end() " << end().base() << std::endl;
 			}
 
 			void erase( iterator first, iterator last ) {
@@ -394,19 +391,7 @@ namespace ft {
 				return 0;
 			}
 
-			void print() const {
-				print_node(_root);
-			}
-
 		private:
-
-			void print_node(node_pointer node) const {
-				if (node != _nill) {
-					std::cout << node->value->first << " | " << node->value->second << std::endl;
-					print_node(node->left);
-					print_node(node->right);
-				}
-			}
 
 			void			change_node_parent(node_pointer node_to_delete, node_pointer node_change) {
 				node_pointer node_parent = node_to_delete->parent;
@@ -418,7 +403,6 @@ namespace ft {
 				if (node_parent == _nill) {
 					return ;
 				}
-				// std::cout << node_parent->right->value->first << " | " << node_to_delete->value->first << std::endl;
 				if (node_parent->left == node_to_delete) {
 					node_parent->left = node_change;
 				} else if (node_parent->right == node_to_delete) {
@@ -489,10 +473,6 @@ namespace ft {
 				_nill->parent = _root;
 				_nill->left = _begin;
 				_nill->right = _end;
-				// std::cout << "root " << _root->value << std::endl;
-				// std::cout << "nill " << _nill->value << std::endl;
-				// std::cout << "begin " << _begin->value << std::endl;
-				// std::cout << "end " << _end->value << std::endl;
 			}
 	};
 }
