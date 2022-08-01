@@ -253,7 +253,7 @@ namespace ft {
 			
 			size_type	max_size() const {
 				return std::min((size_type) std::numeric_limits<difference_type>::max(),
-						std::numeric_limits<size_type>::max() / (sizeof(node_type) + sizeof(value_type)) / 2);
+						std::numeric_limits<size_type>::max() / (sizeof(node_type) + sizeof(value_type)));
 			}
 
 			bool			empty() const {
