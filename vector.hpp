@@ -351,10 +351,12 @@ namespace ft {
 			}
 
 			void __smart_change_capacity(size_type new_capacity) {
-				if (new_capacity > 2 * _size) {
+				if (_capacity > new_capacity) {
+				}
+				 else if (new_capacity > 2 * _size) {
 					__raw_change_capacity(new_capacity);
 				} else {
-					__raw_change_capacity(_size * 2);
+					__raw_change_capacity(_capacity * 2);
 				}
 			}
 
